@@ -29,4 +29,7 @@
     <string name="editing_movie">Editando película</string>
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
+    <string name="movie_edited">Película editada correctamente</string>
+    <string name="movie_not_edited">Película no editada</string>
+
 </resources>

@@ -33,6 +33,8 @@ import androidx.navigation.compose.rememberNavController
 import com.campusdigitalfp.filmoteca.ui.theme.FilmotecaTheme
 import androidx.core.net.toUri
 import androidx.navigation.NavType
+import androidx.compose.ui.graphics.Color
+
 
 object Routes {
     const val FILM_LIST = "film_list"
@@ -43,6 +45,7 @@ object Routes {
     fun filmData(movieName: String) = "film_data/$movieName"
 }
 
+const val EDIT_RESULT = "edit_result"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -176,12 +179,21 @@ fun FilmListScreen(navController: NavController) {
     }
 }
 
-
 @Composable
 fun FilmDataScreen(
     navController: NavController,
     movieName: String
 ) {
+    val resultState = navController
+        .currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<Boolean>(EDIT_RESULT)
+
+    val edited = when (resultState) {
+        null -> 0
+        true -> 1
+        false -> 2
+    }
 
     Column(
         modifier = Modifier
@@ -195,10 +207,27 @@ fun FilmDataScreen(
         Spacer(modifier = Modifier.height(8.dp))
         Text(movieName)
 
+        if (edited == 1) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.movie_edited),
+                color = Color.Green
+            )
+        } else if (edited == 2) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.movie_not_edited),
+                color = Color.Red
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            navController.navigate(Routes.filmData("Película relacionada"))
+            val relatedMovie =
+                if (movieName == "Película A") "Película B" else "Película A"
+
+            navController.navigate(Routes.filmData(relatedMovie))
         }) {
             Text(stringResource(R.string.view_related_movie))
         }
@@ -223,9 +252,9 @@ fun FilmDataScreen(
     }
 }
 
-
 @Composable
 fun FilmEditScreen(navController: NavController) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -239,6 +268,10 @@ fun FilmEditScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.set(EDIT_RESULT, true)
+
             navController.popBackStack()
         }) {
             Text(stringResource(R.string.save))
@@ -247,13 +280,16 @@ fun FilmEditScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.set(EDIT_RESULT, false)
+
             navController.popBackStack()
         }) {
             Text(stringResource(R.string.cancel))
         }
     }
 }
-
 
 fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

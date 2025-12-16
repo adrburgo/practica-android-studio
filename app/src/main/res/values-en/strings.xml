@@ -29,4 +29,7 @@
     <string name="editing_movie">Editing movie</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="movie_edited">Movie edited successfully</string>
+    <string name="movie_not_edited">Movie not edited</string>
+
 </resources>
