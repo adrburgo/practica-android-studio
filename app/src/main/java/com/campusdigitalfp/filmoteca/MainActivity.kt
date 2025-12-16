@@ -42,8 +42,11 @@ import androidx.navigation.compose.rememberNavController
 import com.campusdigitalfp.filmoteca.ui.theme.FilmotecaTheme
 import androidx.core.net.toUri
 import androidx.navigation.NavType
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.fillMaxWidth
 
 
 object Routes {
@@ -56,6 +59,42 @@ object Routes {
 }
 
 const val EDIT_RESULT = "edit_result"
+
+data class Movie(
+    val name: String,
+    val imageRes: Int,
+    val director: String,
+    val year: String,
+    val genre: String,
+    val format: String,
+    val imdbUrl: String,
+    val notes: String
+)
+
+val movies = listOf(
+
+    Movie(
+        name = "The Dark Knight",
+        imageRes = R.drawable.dark_knight, // cartel en drawable
+        director = "Christopher Nolan",
+        year = "2008",
+        genre = "Acción / Crimen",
+        format = "Blu-ray",
+        imdbUrl = "https://www.imdb.com/title/tt0468569/",
+        notes = "Considerada una de las mejores películas de superhéroes de la historia."
+    ),
+
+    Movie(
+        name = "Inception",
+        imageRes = R.drawable.inception, // cartel en drawable
+        director = "Christopher Nolan",
+        year = "2010",
+        genre = "Ciencia ficción",
+        format = "Digital",
+        imdbUrl = "https://www.imdb.com/title/tt1375666/",
+        notes = "Película compleja sobre sueños dentro de sueños."
+    )
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,6 +139,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AboutScreen(navController: NavController) {
     val context = LocalContext.current
+    val subject = stringResource(R.string.get_support)
 
     AppScaffold(showBackButton = true, navController = navController) { padding ->
         Column(
@@ -122,7 +162,7 @@ fun AboutScreen(navController: NavController) {
                 Button(onClick = { openWebSite(context,"https://www.google.es") }) {
                     Text(stringResource(R.string.go_to_website))
                 }
-                Button(onClick = { sendEmail(context, "eagullof@campusdigitalfp.es", context.getString(R.string.incidence_subject)) }) {
+                Button(onClick = { sendEmail(context, "eagullof@campusdigitalfp.es", subject) }) {
                     Text(stringResource(R.string.get_support))
                 }
             }
@@ -137,7 +177,9 @@ fun AboutScreen(navController: NavController) {
 //Pantalla principal
 @Composable
 fun FilmListScreen(navController: NavController) {
+
     AppScaffold(showBackButton = false, navController = navController) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -146,67 +188,123 @@ fun FilmListScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = { navController.navigate(Routes.filmData("Película A")) }) {
-                Text(stringResource(R.string.view_movie_a))
+
+            Button(onClick = {
+                navController.navigate(Routes.filmData(movies[0].name))
+            }) {
+                Text("Ver ${movies[0].name}")
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { navController.navigate(Routes.filmData("Película B")) }) {
-                Text(stringResource(R.string.view_movie_b))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(onClick = {
+                navController.navigate(Routes.filmData(movies[1].name))
+            }) {
+                Text("Ver ${movies[1].name}")
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { navController.navigate(Routes.ABOUT) }) {
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(onClick = {
+                navController.navigate(Routes.ABOUT)
+            }) {
                 Text(stringResource(R.string.about))
             }
         }
     }
 }
 
-
 @Composable
 fun FilmDataScreen(navController: NavController, movieName: String) {
-    val resultState = navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>(EDIT_RESULT)
-    val edited = when (resultState) {
-        null -> 0
-        true -> 1
-        false -> 2
-    }
+
+    val context = LocalContext.current
+
+    // Película estática según el nombre recibido
+    val movie = movies.find { it.name == movieName } ?: movies.first()
+
     AppScaffold(showBackButton = true, navController = navController) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp)
         ) {
-            Text(movieName)
-            Spacer(modifier = Modifier.height(8.dp))
-            if (edited == 1) {
-                Text(stringResource(R.string.movie_edited), color = Color.Green)
-            } else if (edited == 2) {
-                Text(stringResource(R.string.movie_not_edited), color = Color.Red)
+
+            Row {
+
+                Image(
+                    painter = painterResource(id = movie.imageRes),
+                    contentDescription = movie.name,
+                    modifier = Modifier.size(140.dp)
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+
+                    Text(
+                        text = movie.name,
+                        color = colorResource(R.color.teal_700),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text("Director:", fontWeight = FontWeight.Bold)
+                    Text(movie.director)
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text("Año:", fontWeight = FontWeight.Bold)
+                    Text(movie.year)
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text("Género:", fontWeight = FontWeight.Bold)
+                    Text(movie.genre)
+                }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { openWebSite(context, movie.imdbUrl) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ver en IMDB")
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            val relatedMovie = if (movieName == "Película A") "Película B" else "Película A"
-            Button(onClick = { navController.navigate(Routes.filmData(relatedMovie)) }) {
-                Text(stringResource(R.string.view_related_movie))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { navController.navigate(Routes.FILM_EDIT) }) {
-                Text(stringResource(R.string.edit_movie))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = {
-                navController.navigate(Routes.FILM_LIST) {
-                    popUpTo(Routes.FILM_LIST) { inclusive = true }
+            Text("Versión extendida")
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Button(onClick = {
+                    navController.navigate(Routes.FILM_EDIT)
+                }) {
+                    Text(stringResource(R.string.edit_movie))
                 }
-            }) {
-                Text(stringResource(R.string.back_to_main))
+
+                Button(onClick = {
+                    navController.navigate(Routes.FILM_LIST) {
+                        popUpTo(Routes.FILM_LIST) { inclusive = true }
+                    }
+                }) {
+                    Text(stringResource(R.string.back_to_main))
+                }
             }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -316,14 +414,14 @@ fun AppScaffold(
                     title = { Text(stringResource(R.string.app_name)) },
                     navigationIcon = navigationIconContent,
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorResource(R.color.teal_200)
+                        containerColor = colorResource(R.color.teal_700)
                     )
                 )
             } else {
                 TopAppBar(
                     title = { Text(stringResource(R.string.app_name)) },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorResource(R.color.teal_200)
+                        containerColor = colorResource(R.color.teal_700)
                     )
                 )
             }
