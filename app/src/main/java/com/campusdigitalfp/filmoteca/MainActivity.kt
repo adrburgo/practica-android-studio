@@ -22,9 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.campusdigitalfp.filmoteca.ui.theme.FilmotecaTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +43,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AboutScreen() {
     val context = LocalContext.current
+    val notImplementedText: String = stringResource(R.string.not_implemented)
 
     Column(
         modifier = Modifier
@@ -50,13 +53,13 @@ fun AboutScreen() {
         verticalArrangement = Arrangement.Center
     ) {
 
-        Text(text = "Creada por Adrián Ferrer")
+        Text(text = stringResource(R.string.created_by))
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Image(
             painter = painterResource(id = R.drawable.perfil),
-            contentDescription = "Imagen de perfil",
+            contentDescription = stringResource(R.string.created_by),
             modifier = Modifier.size(120.dp)
         )
 
@@ -68,24 +71,24 @@ fun AboutScreen() {
         ) {
 
             Button(onClick = {
-                showToast(context, "Funcionalidad sin implementar")
+                showToast(context, notImplementedText)
             }) {
-                Text("Ir al sitio web")
+                Text(stringResource(R.string.go_to_website))
             }
 
             Button(onClick = {
-                showToast(context, "Funcionalidad sin implementar")
+                showToast(context, notImplementedText)
             }) {
-                Text("Soporte")
+                Text(stringResource(R.string.get_support))
             }
 
 
         }
 
         Button(onClick = {
-            showToast(context, "Funcionalidad sin implementar")
+            showToast(context, notImplementedText)
         }) {
-            Text("Volver")
+            Text(stringResource(R.string.back))
         }
     }
 }

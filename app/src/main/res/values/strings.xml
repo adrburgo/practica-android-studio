@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Filmoteca</string>
+
+    <string name="created_by">Creada por Adrián Ferrer</string>
+
+    <string name="image_description">Imagen de perfil</string>
+
+    <string name="go_to_website">Ir al sitio web</string>
+    <string name="get_support">Obtener soporte</string>
+    <string name="back">Volver</string>
+
+    <string name="not_implemented">Funcionalidad sin implementar</string>
 </resources>
