@@ -28,16 +28,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.campusdigitalfp.filmoteca.ui.theme.FilmotecaTheme
 import androidx.core.net.toUri
+import androidx.navigation.NavType
 
 object Routes {
     const val FILM_LIST = "film_list"
-    const val FILM_DATA = "film_data"
+    const val FILM_DATA = "film_data/{movieName}"
     const val FILM_EDIT = "film_edit"
     const val ABOUT = "about"
+
+    fun filmData(movieName: String) = "film_data/$movieName"
 }
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,12 +59,21 @@ class MainActivity : ComponentActivity() {
                     composable(Routes.FILM_LIST) {
                         FilmListScreen(navController)
                     }
-                    composable(Routes.FILM_DATA) {
-                        FilmDataScreen(navController)
+
+                    composable(
+                        route = Routes.FILM_DATA,
+                        arguments = listOf(
+                            navArgument("movieName") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val movieName = backStackEntry.arguments?.getString("movieName") ?: ""
+                        FilmDataScreen(navController, movieName)
                     }
+
                     composable(Routes.FILM_EDIT) {
                         FilmEditScreen(navController)
                     }
+
                     composable(Routes.ABOUT) {
                         AboutScreen(navController)
                     }
@@ -129,6 +143,7 @@ fun AboutScreen(navController: NavController) {
 //Pantalla principal
 @Composable
 fun FilmListScreen(navController: NavController) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -138,7 +153,7 @@ fun FilmListScreen(navController: NavController) {
     ) {
 
         Button(onClick = {
-            navController.navigate(Routes.FILM_DATA)
+            navController.navigate(Routes.filmData("Película A"))
         }) {
             Text(stringResource(R.string.view_movie_a))
         }
@@ -146,7 +161,7 @@ fun FilmListScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
-            navController.navigate(Routes.FILM_DATA)
+            navController.navigate(Routes.filmData("Película B"))
         }) {
             Text(stringResource(R.string.view_movie_b))
         }
@@ -161,8 +176,13 @@ fun FilmListScreen(navController: NavController) {
     }
 }
 
+
 @Composable
-fun FilmDataScreen(navController: NavController) {
+fun FilmDataScreen(
+    navController: NavController,
+    movieName: String
+) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -172,11 +192,13 @@ fun FilmDataScreen(navController: NavController) {
     ) {
 
         Text(stringResource(R.string.movie_data))
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(movieName)
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            navController.navigate(Routes.FILM_DATA)
+            navController.navigate(Routes.filmData("Película relacionada"))
         }) {
             Text(stringResource(R.string.view_related_movie))
         }
@@ -200,6 +222,7 @@ fun FilmDataScreen(navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun FilmEditScreen(navController: NavController) {
