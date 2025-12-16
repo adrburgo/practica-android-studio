@@ -13,4 +13,20 @@
     <string name="back">Volver</string>
 
     <string name="not_implemented">Funcionalidad sin implementar</string>
+
+    <!-- Film list -->
+    <string name="view_movie_a">Ver película A</string>
+    <string name="view_movie_b">Ver película B</string>
+    <string name="about">Acerca de</string>
+
+    <!-- Film data -->
+    <string name="movie_data">Datos de la película</string>
+    <string name="view_related_movie">Ver película relacionada</string>
+    <string name="edit_movie">Editar película</string>
+    <string name="back_to_main">Volver a la principal</string>
+
+    <!-- Film edit -->
+    <string name="editing_movie">Editando película</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
 </resources>

@@ -2,7 +2,6 @@ package com.campusdigitalfp.filmoteca
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -25,10 +24,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.campusdigitalfp.filmoteca.ui.theme.FilmotecaTheme
+import androidx.core.net.toUri
 
+object Routes {
+    const val FILM_LIST = "film_list"
+    const val FILM_DATA = "film_data"
+    const val FILM_EDIT = "film_edit"
+    const val ABOUT = "about"
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,16 +45,34 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FilmotecaTheme {
-                AboutScreen()
+                val navController = rememberNavController()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = Routes.FILM_LIST
+                ) {
+                    composable(Routes.FILM_LIST) {
+                        FilmListScreen(navController)
+                    }
+                    composable(Routes.FILM_DATA) {
+                        FilmDataScreen(navController)
+                    }
+                    composable(Routes.FILM_EDIT) {
+                        FilmEditScreen(navController)
+                    }
+                    composable(Routes.ABOUT) {
+                        AboutScreen(navController)
+                    }
+                }
             }
         }
     }
 }
-@Preview(showBackground = true)
+
 @Composable
-fun AboutScreen() {
+fun AboutScreen(navController: NavController) {
     val context = LocalContext.current
-    val notImplementedText: String = stringResource(R.string.not_implemented)
+    //val notImplementedText: String = stringResource(R.string.not_implemented)
 
     Column(
         modifier = Modifier
@@ -73,10 +100,7 @@ fun AboutScreen() {
         ) {
 
             Button(onClick = {
-                openWebSite(
-                    context = context,
-                    "https://www.google.es"
-                )
+                openWebSite(context,"https://www.google.es")
             }) {
                 Text(stringResource(R.string.go_to_website))
             }
@@ -95,9 +119,114 @@ fun AboutScreen() {
         }
 
         Button(onClick = {
-            showToast(context, notImplementedText)
+            navController.popBackStack()
         }) {
             Text(stringResource(R.string.back))
+        }
+    }
+}
+
+//Pantalla principal
+@Composable
+fun FilmListScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Button(onClick = {
+            navController.navigate(Routes.FILM_DATA)
+        }) {
+            Text(stringResource(R.string.view_movie_a))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            navController.navigate(Routes.FILM_DATA)
+        }) {
+            Text(stringResource(R.string.view_movie_b))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            navController.navigate(Routes.ABOUT)
+        }) {
+            Text(stringResource(R.string.about))
+        }
+    }
+}
+
+@Composable
+fun FilmDataScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(stringResource(R.string.movie_data))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            navController.navigate(Routes.FILM_DATA)
+        }) {
+            Text(stringResource(R.string.view_related_movie))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            navController.navigate(Routes.FILM_EDIT)
+        }) {
+            Text(stringResource(R.string.edit_movie))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            navController.navigate(Routes.FILM_LIST) {
+                popUpTo(Routes.FILM_LIST) { inclusive = true }
+            }
+        }) {
+            Text(stringResource(R.string.back_to_main))
+        }
+    }
+}
+
+@Composable
+fun FilmEditScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(stringResource(R.string.editing_movie))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            navController.popBackStack()
+        }) {
+            Text(stringResource(R.string.save))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            navController.popBackStack()
+        }) {
+            Text(stringResource(R.string.cancel))
         }
     }
 }
@@ -110,7 +239,7 @@ fun showToast(context: Context, message: String) {
 //Función para abrir página web
 fun openWebSite(context: Context, url: String) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse(url)
+        data = url.toUri()
     }
     context.startActivity(intent)
 }
@@ -118,7 +247,7 @@ fun openWebSite(context: Context, url: String) {
 //Función enviar correo electrónico
 fun sendEmail(context: Context, email: String, asunto: String) {
     val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.parse("mailto:$email")
+        data = "mailto:$email".toUri()
         putExtra(Intent.EXTRA_SUBJECT, asunto)
     }
     context.startActivity(intent)

@@ -13,4 +13,20 @@
     <string name="back">Back</string>
 
     <string name="not_implemented">Feature not implemented</string>
+
+    <!-- Film list -->
+    <string name="view_movie_a">View movie A</string>
+    <string name="view_movie_b">View movie B</string>
+    <string name="about">About</string>
+
+    <!-- Film data -->
+    <string name="movie_data">Movie data</string>
+    <string name="view_related_movie">View related movie</string>
+    <string name="edit_movie">Edit movie</string>
+    <string name="back_to_main">Back to main</string>
+
+    <!-- Film edit -->
+    <string name="editing_movie">Editing movie</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>
