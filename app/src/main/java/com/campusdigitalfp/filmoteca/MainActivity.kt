@@ -10,14 +10,23 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +43,7 @@ import com.campusdigitalfp.filmoteca.ui.theme.FilmotecaTheme
 import androidx.core.net.toUri
 import androidx.navigation.NavType
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 
 
 object Routes {
@@ -86,59 +96,40 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun AboutScreen(navController: NavController) {
     val context = LocalContext.current
-    //val notImplementedText: String = stringResource(R.string.not_implemented)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-
-        Text(text = stringResource(R.string.created_by))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Image(
-            painter = painterResource(id = R.drawable.perfil),
-            contentDescription = stringResource(R.string.created_by),
-            modifier = Modifier.size(120.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+    AppScaffold(showBackButton = true, navController = navController) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-
-            Button(onClick = {
-                openWebSite(context,"https://www.google.es")
-            }) {
-                Text(stringResource(R.string.go_to_website))
+            Text(stringResource(R.string.created_by))
+            Spacer(modifier = Modifier.height(16.dp))
+            Image(
+                painter = painterResource(id = R.drawable.perfil),
+                contentDescription = stringResource(R.string.created_by),
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = { openWebSite(context,"https://www.google.es") }) {
+                    Text(stringResource(R.string.go_to_website))
+                }
+                Button(onClick = { sendEmail(context, "eagullof@campusdigitalfp.es", context.getString(R.string.incidence_subject)) }) {
+                    Text(stringResource(R.string.get_support))
+                }
             }
-
-            Button(onClick = {
-                sendEmail(
-                    context = context,
-                    email = "eagullof@campusdigitalfp.es",
-                    asunto = context.getString(R.string.incidence_subject)
-                )
-            }) {
-                Text(stringResource(R.string.get_support))
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { navController.popBackStack() }) {
+                Text(stringResource(R.string.back))
             }
-
-
-        }
-
-        Button(onClick = {
-            navController.popBackStack()
-        }) {
-            Text(stringResource(R.string.back))
         }
     }
 }
@@ -146,150 +137,138 @@ fun AboutScreen(navController: NavController) {
 //Pantalla principal
 @Composable
 fun FilmListScreen(navController: NavController) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Button(onClick = {
-            navController.navigate(Routes.filmData("Película A"))
-        }) {
-            Text(stringResource(R.string.view_movie_a))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = {
-            navController.navigate(Routes.filmData("Película B"))
-        }) {
-            Text(stringResource(R.string.view_movie_b))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = {
-            navController.navigate(Routes.ABOUT)
-        }) {
-            Text(stringResource(R.string.about))
+    AppScaffold(showBackButton = false, navController = navController) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(onClick = { navController.navigate(Routes.filmData("Película A")) }) {
+                Text(stringResource(R.string.view_movie_a))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { navController.navigate(Routes.filmData("Película B")) }) {
+                Text(stringResource(R.string.view_movie_b))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { navController.navigate(Routes.ABOUT) }) {
+                Text(stringResource(R.string.about))
+            }
         }
     }
 }
 
-@Composable
-fun FilmDataScreen(
-    navController: NavController,
-    movieName: String
-) {
-    val resultState = navController
-        .currentBackStackEntry
-        ?.savedStateHandle
-        ?.get<Boolean>(EDIT_RESULT)
 
+@Composable
+fun FilmDataScreen(navController: NavController, movieName: String) {
+    val resultState = navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>(EDIT_RESULT)
     val edited = when (resultState) {
         null -> 0
         true -> 1
         false -> 2
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Text(stringResource(R.string.movie_data))
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(movieName)
-
-        if (edited == 1) {
+    AppScaffold(showBackButton = true, navController = navController) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(movieName)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.movie_edited),
-                color = Color.Green
-            )
-        } else if (edited == 2) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.movie_not_edited),
-                color = Color.Red
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-            val relatedMovie =
-                if (movieName == "Película A") "Película B" else "Película A"
-
-            navController.navigate(Routes.filmData(relatedMovie))
-        }) {
-            Text(stringResource(R.string.view_related_movie))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = {
-            navController.navigate(Routes.FILM_EDIT)
-        }) {
-            Text(stringResource(R.string.edit_movie))
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = {
-            navController.navigate(Routes.FILM_LIST) {
-                popUpTo(Routes.FILM_LIST) { inclusive = true }
+            if (edited == 1) {
+                Text(stringResource(R.string.movie_edited), color = Color.Green)
+            } else if (edited == 2) {
+                Text(stringResource(R.string.movie_not_edited), color = Color.Red)
             }
-        }) {
-            Text(stringResource(R.string.back_to_main))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val relatedMovie = if (movieName == "Película A") "Película B" else "Película A"
+            Button(onClick = { navController.navigate(Routes.filmData(relatedMovie)) }) {
+                Text(stringResource(R.string.view_related_movie))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { navController.navigate(Routes.FILM_EDIT) }) {
+                Text(stringResource(R.string.edit_movie))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                navController.navigate(Routes.FILM_LIST) {
+                    popUpTo(Routes.FILM_LIST) { inclusive = true }
+                }
+            }) {
+                Text(stringResource(R.string.back_to_main))
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilmEditScreen(navController: NavController) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Text(stringResource(R.string.editing_movie))
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-            navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.set(EDIT_RESULT, true)
-
-            navController.popBackStack()
-        }) {
-            Text(stringResource(R.string.save))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(EDIT_RESULT, false)
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.teal_200)
+                )
+            )
         }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                // Guardar cambios = RESULT_OK
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(EDIT_RESULT, true)
+                navController.popBackStack()
+            }) {
+                Text(stringResource(R.string.save))
+            }
 
-        Button(onClick = {
-            navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.set(EDIT_RESULT, false)
+            Spacer(modifier = Modifier.height(8.dp))
 
-            navController.popBackStack()
-        }) {
-            Text(stringResource(R.string.cancel))
+            Button(onClick = {
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(EDIT_RESULT, false)
+                navController.popBackStack()
+            }) {
+                Text(stringResource(R.string.cancel))
+            }
         }
     }
 }
+
+
 
 fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -310,4 +289,46 @@ fun sendEmail(context: Context, email: String, asunto: String) {
         putExtra(Intent.EXTRA_SUBJECT, asunto)
     }
     context.startActivity(intent)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppScaffold(
+    showBackButton: Boolean,
+    navController: NavController,
+    content: @Composable (paddingValues: PaddingValues) -> Unit
+) {
+    val navigationIconContent: (@Composable (() -> Unit))? = if (showBackButton) {
+        {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
+        }
+    } else null
+
+    Scaffold(
+        topBar = {
+            if (navigationIconContent != null) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.app_name)) },
+                    navigationIcon = navigationIconContent,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colorResource(R.color.teal_200)
+                    )
+                )
+            } else {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.app_name)) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colorResource(R.color.teal_200)
+                    )
+                )
+            }
+        }
+    ) { padding ->
+        content(padding)
+    }
 }
