@@ -6,7 +6,10 @@
     <string name="image_description">Imagen de perfil</string>
 
     <string name="go_to_website">Ir al sitio web</string>
+
     <string name="get_support">Obtener soporte</string>
+    <string name="incidence_subject">Incidencia con Filmoteca</string>
+
     <string name="back">Volver</string>
 
     <string name="not_implemented">Funcionalidad sin implementar</string>

@@ -6,7 +6,10 @@
     <string name="image_description">Profile picture</string>
 
     <string name="go_to_website">Go to website</string>
+
     <string name="get_support">Get support</string>
+    <string name="incidence_subject">Issue with Filmoteca</string>
+
     <string name="back">Back</string>
 
     <string name="not_implemented">Feature not implemented</string>
