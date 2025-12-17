@@ -17,12 +17,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -47,6 +45,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.KeyboardType
 
 
 object Routes {
@@ -234,9 +240,12 @@ fun FilmDataScreen(navController: NavController, movieName: String) {
             Row {
 
                 Image(
-                    painter = painterResource(id = movie.imageRes),
+                    painter = painterResource(movie.imageRes),
                     contentDescription = movie.name,
-                    modifier = Modifier.size(140.dp)
+                    modifier = Modifier
+                        .height(200.dp)
+                        .width(120.dp),
+                    contentScale = ContentScale.Crop
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -309,62 +318,138 @@ fun FilmDataScreen(navController: NavController, movieName: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilmEditScreen(navController: NavController) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set(EDIT_RESULT, false)
-                        navController.popBackStack()
-                    }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorResource(R.color.teal_200)
-                )
-            )
-        }
-    ) { padding ->
+
+    val context = LocalContext.current
+
+    val generoList = listOf("Acción", "Drama", "Comedia", "Terror", "Sci-Fi")
+    val formatoList = listOf("DVD", "Blu-ray", "Online")
+
+    // Estados
+    val tituloState = remember { mutableStateOf("") }
+    val directorState = remember { mutableStateOf("") }
+    val anyoState = remember { mutableStateOf("1997") }
+    val urlState = remember { mutableStateOf("") }
+    val comentariosState = remember { mutableStateOf("") }
+
+    val expandedGenero = remember { mutableStateOf(false) }
+    val expandedFormato = remember { mutableStateOf(false) }
+
+    val generoState = remember { mutableStateOf(generoList.first()) }
+    val formatoState = remember { mutableStateOf(formatoList.first()) }
+
+    AppScaffold(showBackButton = true, navController = navController) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = {
-                // Guardar cambios = RESULT_OK
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.set(EDIT_RESULT, true)
-                navController.popBackStack()
-            }) {
-                Text(stringResource(R.string.save))
+            // FILA IMAGEN + BOTONES
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.dark_knight),
+                    contentDescription = "Cartel",
+                    modifier = Modifier.size(100.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = { /* TODO tomar foto */ }) {
+                        Text("Tomar una fotografía")
+                    }
+                    Button(onClick = { /* TODO seleccionar imagen */ }) {
+                        Text("Seleccionar una imagen")
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // CAMPOS DE TEXTO
+            TextField(
+                value = tituloState.value,
+                onValueChange = { tituloState.value = it },
+                label = { Text("Título") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextField(
+                value = directorState.value,
+                onValueChange = { directorState.value = it },
+                label = { Text("Director") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextField(
+                value = anyoState.value,
+                onValueChange = { anyoState.value = it },
+                label = { Text("Año de estreno") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            Button(onClick = {
-                navController.previousBackStackEntry
-                    ?.savedStateHandle
-                    ?.set(EDIT_RESULT, false)
-                navController.popBackStack()
-            }) {
-                Text(stringResource(R.string.cancel))
+            // DROPDOWN GÉNERO
+            Column {
+                Button(onClick = { expandedGenero.value = !expandedGenero.value }) {
+                    Text("Género: ${generoState.value}")
+                }
+                DropdownMenu(
+                    expanded = expandedGenero.value,
+                    onDismissRequest = { expandedGenero.value = false }
+                ) {
+                    generoList.forEach { g ->
+                        DropdownMenuItem(
+                            text = { Text(g) },
+                            onClick = {
+                                generoState.value = g
+                                expandedGenero.value = false
+                            }
+                        )
+                    }
+                }
             }
+
+            // DROPDOWN FORMATO
+            Column {
+                Button(onClick = { expandedFormato.value = !expandedFormato.value }) {
+                    Text("Formato: ${formatoState.value}")
+                }
+                DropdownMenu(
+                    expanded = expandedFormato.value,
+                    onDismissRequest = { expandedFormato.value = false }
+                ) {
+                    formatoList.forEach { f ->
+                        DropdownMenuItem(
+                            text = { Text(f) },
+                            onClick = {
+                                formatoState.value = f
+                                expandedFormato.value = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            TextField(
+                value = urlState.value,
+                onValueChange = { urlState.value = it },
+                label = { Text("Enlace IMDB") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            TextField(
+                value = comentariosState.value,
+                onValueChange = { comentariosState.value = it },
+                label = { Text("Comentarios") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                maxLines = 5
+            )
         }
     }
 }
+
 
 
 
@@ -400,7 +485,7 @@ fun AppScaffold(
         {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    painter = painterResource(id = R.drawable.ic_arrow_back),
                     contentDescription = stringResource(R.string.back)
                 )
             }
