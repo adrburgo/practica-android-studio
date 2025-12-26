@@ -574,10 +574,21 @@ fun AppScaffold(
 ) {
     val navigationIconContent: (@Composable (() -> Unit))? = if (showBackButton) {
         {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_back),
-                    contentDescription = stringResource(R.string.back)
+
+            Box(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clickable {
+                        // Ir al listado principal
+                        navController.navigate(Routes.FILM_LIST) {
+                            popUpTo(Routes.FILM_LIST) { inclusive = true }
+                        }
+                    }
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.home_icon), // icono de la app
+                    contentDescription = "Home",
+                    modifier = Modifier.size(36.dp)
                 )
             }
         }
@@ -591,7 +602,8 @@ fun AppScaffold(
                     navigationIcon = navigationIconContent,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = colorResource(R.color.teal_700)
-                    )
+                    ),
+
                 )
             } else {
                 TopAppBar(
