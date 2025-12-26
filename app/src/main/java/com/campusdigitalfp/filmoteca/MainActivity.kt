@@ -60,11 +60,13 @@ import androidx.compose.ui.text.input.KeyboardType
 object Routes {
     const val FILM_LIST = "film_list"
     const val FILM_DATA = "film_data/{filmId}"
-    const val FILM_EDIT = "film_edit"
+    const val FILM_EDIT = "film_edit/{filmId}"
     const val ABOUT = "about"
 
     fun filmData(filmId: Int) = "film_data/$filmId"
+    fun filmEdit(filmId: Int) = "film_edit/$filmId"
 }
+
 
 
 const val EDIT_RESULT = "edit_result"
@@ -134,8 +136,12 @@ class MainActivity : ComponentActivity() {
                     }
 
 
-                    composable(Routes.FILM_EDIT) {
-                        FilmEditScreen(navController)
+                    composable(
+                        route = Routes.FILM_EDIT,
+                        arguments = listOf(navArgument("filmId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val filmId = backStackEntry.arguments?.getInt("filmId") ?: 0
+                        FilmEditScreen(navController, filmId)
                     }
 
                     composable(Routes.ABOUT) {
@@ -309,7 +315,7 @@ fun FilmDataScreen(navController: NavController, filmId: Int) {
             ) {
 
                 Button(onClick = {
-                    navController.navigate(Routes.filmData(film.id))
+                    navController.navigate(Routes.filmEdit(film.id))
                 }) {
                     Text(stringResource(R.string.edit_movie))
                 }
@@ -327,25 +333,25 @@ fun FilmDataScreen(navController: NavController, filmId: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilmEditScreen(navController: NavController) {
+fun FilmEditScreen(navController: NavController, filmId: Int) {
 
     val context = LocalContext.current
 
     val generoList = listOf("Acción", "Drama", "Comedia", "Terror", "Sci-Fi")
     val formatoList = listOf("DVD", "Blu-ray", "Online")
 
-    // Estados
-    val tituloState = remember { mutableStateOf("") }
-    val directorState = remember { mutableStateOf("") }
-    val anyoState = remember { mutableStateOf("1997") }
-    val urlState = remember { mutableStateOf("") }
-    val comentariosState = remember { mutableStateOf("") }
+    val film = FilmDataSource.films.getOrNull(filmId) ?: return
+
+    val tituloState = remember { mutableStateOf(film.title ?: "") }
+    val directorState = remember { mutableStateOf(film.director ?: "") }
+    val anyoState = remember { mutableStateOf(film.year.toString()) }
+    val urlState = remember { mutableStateOf(film.imdbUrl ?: "") }
+    val comentariosState = remember { mutableStateOf(film.comments ?: "") }
 
     val expandedGenero = remember { mutableStateOf(false) }
     val expandedFormato = remember { mutableStateOf(false) }
-
-    val generoState = remember { mutableStateOf(generoList.first()) }
-    val formatoState = remember { mutableStateOf(formatoList.first()) }
+    val generoState = remember { mutableStateOf(generoList.getOrElse(film.genre) { generoList.first() }) }
+    val formatoState = remember { mutableStateOf(formatoList.getOrElse(film.format) { formatoList.first() }) }
 
     AppScaffold(showBackButton = true, navController = navController) { padding ->
         Column(
@@ -456,9 +462,32 @@ fun FilmEditScreen(navController: NavController) {
                     .height(120.dp),
                 maxLines = 5
             )
+
+            // BOTÓN GUARDAR
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    // Actualizar FilmDataSource.films
+                    FilmDataSource.films[filmId] = film.copy(
+                        title = tituloState.value,
+                        director = directorState.value,
+                        year = anyoState.value.toIntOrNull() ?: film.year,
+                        genre = generoList.indexOf(generoState.value).coerceAtLeast(0),
+                        format = formatoList.indexOf(formatoState.value).coerceAtLeast(0),
+                        imdbUrl = urlState.value,
+                        comments = comentariosState.value
+                    )
+                    Toast.makeText(context, "Película actualizada", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Guardar")
+            }
         }
     }
 }
+
 
 
 
