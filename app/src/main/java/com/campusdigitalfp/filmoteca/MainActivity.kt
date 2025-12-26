@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -57,14 +59,41 @@ import androidx.compose.ui.text.input.KeyboardType
 
 object Routes {
     const val FILM_LIST = "film_list"
-    const val FILM_DATA = "film_data/{movieName}"
+    const val FILM_DATA = "film_data/{filmId}"
     const val FILM_EDIT = "film_edit"
     const val ABOUT = "about"
 
-    fun filmData(movieName: String) = "film_data/$movieName"
+    fun filmData(filmId: Int) = "film_data/$filmId"
 }
 
+
 const val EDIT_RESULT = "edit_result"
+
+data class Film(
+    var id: Int = 0,
+    var imageResId: Int = 0,
+    var title: String? = null,
+    var director: String? = null,
+    var year: Int = 0,
+    var genre: Int = 0,
+    var format: Int = 0,
+    var imdbUrl: String? = null,
+    var comments: String? = null
+) {
+    override fun toString(): String = title ?: "<Sin título>"
+
+    companion object {
+        const val FORMAT_DVD = 0
+        const val FORMAT_BLURAY = 1
+        const val FORMAT_DIGITAL = 2
+
+        const val GENRE_ACTION = 0
+        const val GENRE_COMEDY = 1
+        const val GENRE_DRAMA = 2
+        const val GENRE_SCIFI = 3
+        const val GENRE_HORROR = 4
+    }
+}
 
 data class Movie(
     val name: String,
@@ -77,30 +106,6 @@ data class Movie(
     val notes: String
 )
 
-val movies = listOf(
-
-    Movie(
-        name = "The Dark Knight",
-        imageRes = R.drawable.dark_knight, // cartel en drawable
-        director = "Christopher Nolan",
-        year = "2008",
-        genre = "Acción / Crimen",
-        format = "Blu-ray",
-        imdbUrl = "https://www.imdb.com/title/tt0468569/",
-        notes = "Considerada una de las mejores películas de superhéroes de la historia."
-    ),
-
-    Movie(
-        name = "Inception",
-        imageRes = R.drawable.inception, // cartel en drawable
-        director = "Christopher Nolan",
-        year = "2010",
-        genre = "Ciencia ficción",
-        format = "Digital",
-        imdbUrl = "https://www.imdb.com/title/tt1375666/",
-        notes = "Película compleja sobre sueños dentro de sueños."
-    )
-)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,12 +126,13 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = Routes.FILM_DATA,
                         arguments = listOf(
-                            navArgument("movieName") { type = NavType.StringType }
+                            navArgument("filmId") { type = NavType.IntType }
                         )
                     ) { backStackEntry ->
-                        val movieName = backStackEntry.arguments?.getString("movieName") ?: ""
-                        FilmDataScreen(navController, movieName)
+                        val filmId = backStackEntry.arguments?.getInt("filmId") ?: 0
+                        FilmDataScreen(navController, filmId)
                     }
+
 
                     composable(Routes.FILM_EDIT) {
                         FilmEditScreen(navController)
@@ -186,47 +192,53 @@ fun FilmListScreen(navController: NavController) {
 
     AppScaffold(showBackButton = false, navController = navController) { padding ->
 
-        Column(
+        val films = FilmDataSource.films
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            Button(onClick = {
-                navController.navigate(Routes.filmData(movies[0].name))
-            }) {
-                Text("Ver ${movies[0].name}")
-            }
+            items(films.size) { index ->
+                val film = films[index]
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            navController.navigate("film_data/${film.id}")
+                        }
+                ) {
+                    Image(
+                        painter = painterResource(film.imageResId),
+                        contentDescription = film.title,
+                        modifier = Modifier.size(80.dp),
+                        contentScale = ContentScale.Crop
+                    )
 
-            Button(onClick = {
-                navController.navigate(Routes.filmData(movies[1].name))
-            }) {
-                Text("Ver ${movies[1].name}")
-            }
+                    Spacer(modifier = Modifier.width(12.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(onClick = {
-                navController.navigate(Routes.ABOUT)
-            }) {
-                Text(stringResource(R.string.about))
+                    Column {
+                        Text(film.title ?: "")
+                        Text("Director: ${film.director}")
+                        Text("Año: ${film.year}")
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun FilmDataScreen(navController: NavController, movieName: String) {
+fun FilmDataScreen(navController: NavController, filmId: Int) {
 
     val context = LocalContext.current
 
-    // Película estática según el nombre recibido
-    val movie = movies.find { it.name == movieName } ?: movies.first()
+    val film = FilmDataSource.films.getOrNull(filmId) ?: return
 
     AppScaffold(showBackButton = true, navController = navController) { padding ->
 
@@ -240,8 +252,8 @@ fun FilmDataScreen(navController: NavController, movieName: String) {
             Row {
 
                 Image(
-                    painter = painterResource(movie.imageRes),
-                    contentDescription = movie.name,
+                    painter = painterResource(film.imageResId),
+                    contentDescription = film.title,
                     modifier = Modifier
                         .height(200.dp)
                         .width(120.dp),
@@ -253,7 +265,7 @@ fun FilmDataScreen(navController: NavController, movieName: String) {
                 Column {
 
                     Text(
-                        text = movie.name,
+                        text = film.title ?: "",
                         color = colorResource(R.color.teal_700),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -262,24 +274,24 @@ fun FilmDataScreen(navController: NavController, movieName: String) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text("Director:", fontWeight = FontWeight.Bold)
-                    Text(movie.director)
+                    Text(film.director ?: "")
 
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text("Año:", fontWeight = FontWeight.Bold)
-                    Text(movie.year)
+                    Text(film.year.toString())
 
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text("Género:", fontWeight = FontWeight.Bold)
-                    Text(movie.genre)
+                    Text(film.genre.toString())
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { openWebSite(context, movie.imdbUrl) },
+                onClick = { openWebSite(context, film.imdbUrl ?: "") },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Ver en IMDB")
@@ -297,15 +309,13 @@ fun FilmDataScreen(navController: NavController, movieName: String) {
             ) {
 
                 Button(onClick = {
-                    navController.navigate(Routes.FILM_EDIT)
+                    navController.navigate(Routes.filmData(film.id))
                 }) {
                     Text(stringResource(R.string.edit_movie))
                 }
 
                 Button(onClick = {
-                    navController.navigate(Routes.FILM_LIST) {
-                        popUpTo(Routes.FILM_LIST) { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }) {
                     Text(stringResource(R.string.back_to_main))
                 }
