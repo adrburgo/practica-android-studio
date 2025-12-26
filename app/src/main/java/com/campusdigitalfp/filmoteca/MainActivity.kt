@@ -8,7 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,8 +56,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.toMutableStateList
 
 
 object Routes {
@@ -194,7 +199,12 @@ fun AboutScreen(navController: NavController) {
 fun FilmListScreen(navController: NavController) {
 
     val context = LocalContext.current
-    val films = FilmDataSource.films
+
+    // Lista observable para Compose
+    val films = remember { FilmDataSource.films.toMutableStateList() }
+
+    val multiSelectMode = remember { mutableStateOf(false) }
+    val selectedFilms = remember { mutableStateListOf<Int>() }
 
     val menuExpanded = remember { mutableStateOf(false) }
 
@@ -206,6 +216,28 @@ fun FilmListScreen(navController: NavController) {
                     containerColor = colorResource(R.color.teal_700)
                 ),
                 actions = {
+                    if (multiSelectMode.value) {
+                        IconButton(onClick = {
+                            selectedFilms.sortedDescending().forEach { index ->
+                                if (index in films.indices) {
+                                    films.removeAt(index)
+                                }
+                            }
+                            selectedFilms.clear()
+                            multiSelectMode.value = false
+                            // Actualizar FilmDataSource
+                            FilmDataSource.films.clear()
+                            FilmDataSource.films.addAll(films)
+                            Toast.makeText(context, "Películas borradas", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                contentDescription = "Borrar"
+                            )
+                        }
+                    }
+
+                    // Menú
                     Box {
                         IconButton(onClick = { menuExpanded.value = true }) {
                             Icon(
@@ -232,6 +264,7 @@ fun FilmListScreen(navController: NavController) {
                                         imdbUrl = "",
                                         comments = ""
                                     )
+                                    films.add(newFilm)
                                     FilmDataSource.films.add(newFilm)
                                     menuExpanded.value = false
                                     Toast.makeText(context, "Película añadida", Toast.LENGTH_SHORT).show()
@@ -266,9 +299,25 @@ fun FilmListScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            navController.navigate("film_data/${film.id}")
-                        }
+                        .background(
+                            if (selectedFilms.contains(index)) colorResource(R.color.teal_200)
+                            else Color.Transparent
+                        )
+                        .combinedClickable(
+                            onClick = {
+                                if (multiSelectMode.value) {
+                                    if (selectedFilms.contains(index)) selectedFilms.remove(index)
+                                    else selectedFilms.add(index)
+                                } else {
+                                    navController.navigate("film_data/${film.id}")
+                                }
+                            },
+                            onLongClick = {
+                                multiSelectMode.value = true
+                                if (!selectedFilms.contains(index)) selectedFilms.add(index)
+                            }
+                        )
+                        .padding(8.dp)
                 ) {
                     Image(
                         painter = painterResource(film.imageResId),
@@ -289,7 +338,6 @@ fun FilmListScreen(navController: NavController) {
         }
     }
 }
-
 
 @Composable
 fun FilmDataScreen(navController: NavController, filmId: Int) {
