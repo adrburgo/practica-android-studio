@@ -3,6 +3,7 @@ package com.campusdigitalfp.filmoteca
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -431,6 +432,8 @@ fun FilmDataScreen(navController: NavController, filmId: Int) {
 }
 
 
+private const val TAG = "FilmEditScreen"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilmEditScreen(navController: NavController, filmId: Int) {
@@ -563,34 +566,49 @@ fun FilmEditScreen(navController: NavController, filmId: Int) {
                 maxLines = 5
             )
 
-            // BOTÓN GUARDAR
+            // BOTONES GUARDAR / CANCELAR
             Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    // Actualizar FilmDataSource.films
-                    FilmDataSource.films[filmId] = film.copy(
-                        title = tituloState.value,
-                        director = directorState.value,
-                        year = anyoState.value.toIntOrNull() ?: film.year,
-                        genre = generoList.indexOf(generoState.value).coerceAtLeast(0),
-                        format = formatoList.indexOf(formatoState.value).coerceAtLeast(0),
-                        imdbUrl = urlState.value,
-                        comments = comentariosState.value
-                    )
-                    Toast.makeText(context, "Película actualizada", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
-                },
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Guardar")
+                Button(
+                    onClick = {
+                        // Guardar cambios
+                        FilmDataSource.films[filmId] = film.copy(
+                            title = tituloState.value,
+                            director = directorState.value,
+                            year = anyoState.value.toIntOrNull() ?: film.year,
+                            genre = generoList.indexOf(generoState.value).coerceAtLeast(0),
+                            format = formatoList.indexOf(formatoState.value).coerceAtLeast(0),
+                            imdbUrl = urlState.value,
+                            comments = comentariosState.value
+                        )
+                        Log.i(TAG, "Cambios guardados para la película ID: $filmId")
+                        Toast.makeText(context, "Película actualizada", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Guardar")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Button(
+                    onClick = {
+                        Log.i(TAG, "Edición cancelada para la película ID: $filmId")
+                        Toast.makeText(context, "Edición cancelada", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Cancelar")
+                }
             }
         }
     }
 }
-
-
-
-
 
 fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
