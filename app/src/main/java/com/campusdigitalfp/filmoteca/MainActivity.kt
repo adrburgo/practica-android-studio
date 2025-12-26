@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -63,13 +64,9 @@ object Routes {
     const val FILM_EDIT = "film_edit/{filmId}"
     const val ABOUT = "about"
 
-    fun filmData(filmId: Int) = "film_data/$filmId"
+    //fun filmData(filmId: Int) = "film_data/$filmId"
     fun filmEdit(filmId: Int) = "film_edit/$filmId"
 }
-
-
-
-const val EDIT_RESULT = "edit_result"
 
 data class Film(
     var id: Int = 0,
@@ -192,13 +189,68 @@ fun AboutScreen(navController: NavController) {
     }
 }
 
-//Pantalla principal
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilmListScreen(navController: NavController) {
 
-    AppScaffold(showBackButton = false, navController = navController) { padding ->
+    val context = LocalContext.current
+    val films = FilmDataSource.films
 
-        val films = FilmDataSource.films
+    val menuExpanded = remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colorResource(R.color.teal_700)
+                ),
+                actions = {
+                    Box {
+                        IconButton(onClick = { menuExpanded.value = true }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_more_vert),
+                                contentDescription = "Opciones"
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = menuExpanded.value,
+                            onDismissRequest = { menuExpanded.value = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Añadir película") },
+                                onClick = {
+                                    val newFilm = Film(
+                                        id = films.size,
+                                        title = "Nueva Película",
+                                        director = "Desconocido",
+                                        year = 2025,
+                                        genre = Film.GENRE_ACTION,
+                                        format = Film.FORMAT_DVD,
+                                        imageResId = R.drawable.dark_knight,
+                                        imdbUrl = "",
+                                        comments = ""
+                                    )
+                                    FilmDataSource.films.add(newFilm)
+                                    menuExpanded.value = false
+                                    Toast.makeText(context, "Película añadida", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("Acerca de") },
+                                onClick = {
+                                    navController.navigate(Routes.ABOUT)
+                                    menuExpanded.value = false
+                                }
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
 
         LazyColumn(
             modifier = Modifier
@@ -207,7 +259,6 @@ fun FilmListScreen(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
             items(films.size) { index ->
                 val film = films[index]
 
@@ -238,6 +289,7 @@ fun FilmListScreen(navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun FilmDataScreen(navController: NavController, filmId: Int) {
