@@ -13,7 +13,20 @@
           "package_name": "com.campusdigitalfp.filmoteca"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1079282315617-rdkutavtl1tjnmoukfcelh8h2edvm17m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.campusdigitalfp.filmoteca",
+            "certificate_hash": "20c7fbad91cbae6d93b992695317142202a261b4"
+          }
+        },
+        {
+          "client_id": "1079282315617-t0jo99btohc0950gtcnurlr56mrferk3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC34qwKFFmUAJTIifI4ONulGMz-Heg7gYY"
@@ -21,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1079282315617-t0jo99btohc0950gtcnurlr56mrferk3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -32,7 +50,12 @@
           "package_name": "qweweq.etrte.ytyh"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1079282315617-t0jo99btohc0950gtcnurlr56mrferk3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC34qwKFFmUAJTIifI4ONulGMz-Heg7gYY"
@@ -40,7 +63,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1079282315617-t0jo99btohc0950gtcnurlr56mrferk3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

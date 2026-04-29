@@ -1,5 +1,6 @@
 package com.campusdigitalfp.filmoteca
 
+import com.google.firebase.auth.FirebaseAuth
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -56,6 +57,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,10 +67,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.setValue
 
 
 object Routes {
+
+    const val LOGIN = "login"
     const val FILM_LIST = "film_list"
     const val FILM_DATA = "film_data/{filmId}"
     const val FILM_EDIT = "film_edit/{filmId}"
@@ -83,13 +87,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+          //val startRoute = if (auth.currentUser != null) Routes.FILM_LIST else Routes.LOGIN
+            val startRoute = Routes.LOGIN
+
             FilmotecaTheme {
                 val navController = rememberNavController()
 
                 NavHost(
                     navController = navController,
-                    startDestination = Routes.FILM_LIST
+                    startDestination = startRoute
                 ) {
+                    composable(Routes.LOGIN) {
+                        LoginScreen(navController)
+                    }
+
                     composable(Routes.FILM_LIST) {
                         FilmListScreen(navController)
                     }
@@ -97,7 +109,7 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = Routes.FILM_DATA,
                         arguments = listOf(
-                            navArgument("filmId") { type = NavType.IntType }
+                            navArgument("filmId") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         val filmId = backStackEntry.arguments?.getInt("filmId") ?: 0
@@ -122,6 +134,61 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun LoginScreen(navController: NavController) {
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isRegistering by remember { mutableStateOf(false) } // Para alternar entre login y registro
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = if (isRegistering) "Registro de Usuario" else "Iniciar Sesión", fontSize = 24.sp)
+
+        TextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Contraseña") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                if (isRegistering) {
+                    auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            navController.navigate(Routes.FILM_LIST) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                        } else {
+                            Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            navController.navigate(Routes.FILM_LIST) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                        } else {
+                            Toast.makeText(context, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }) {
+            Text(if (isRegistering) "Registrarse" else "Entrar")
+        }
+
+        TextButton(onClick = { isRegistering = !isRegistering }) {
+            Text(if (isRegistering) "¿Ya tienes cuenta? Inicia sesión" else "¿No tienes cuenta? Regístrate")
+        }
+    }
+}
 
 @Composable
 fun AboutScreen(navController: NavController) {
