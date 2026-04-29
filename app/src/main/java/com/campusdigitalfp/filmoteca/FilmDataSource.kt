@@ -7,7 +7,7 @@ object FilmDataSource {
 
     init {
         val f1 = Film()
-        f1.id = films.size
+        f1.id = "1"
         f1.title = "The Dark Knight"
         f1.director = "Christopher Nolan"
         f1.imageResId = R.drawable.dark_knight
@@ -19,7 +19,7 @@ object FilmDataSource {
         films.add(f1)
 
         val f2 = Film()
-        f2.id = films.size
+        f2.id = "2"
         f2.title = "Inception"
         f2.director = "Christopher Nolan"
         f2.imageResId = R.drawable.inception

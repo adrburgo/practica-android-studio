@@ -57,6 +57,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -73,46 +75,8 @@ object Routes {
     const val ABOUT = "about"
 
     //fun filmData(filmId: Int) = "film_data/$filmId"
-    fun filmEdit(filmId: Int) = "film_edit/$filmId"
+    fun filmEdit(filmId: String) = "film_edit/$filmId"
 }
-
-data class Film(
-    var id: Int = 0,
-    var imageResId: Int = 0,
-    var title: String? = null,
-    var director: String? = null,
-    var year: Int = 0,
-    var genre: Int = 0,
-    var format: Int = 0,
-    var imdbUrl: String? = null,
-    var comments: String? = null
-) {
-    override fun toString(): String = title ?: "<Sin título>"
-
-    companion object {
-        const val FORMAT_DVD = 0
-        const val FORMAT_BLURAY = 1
-        const val FORMAT_DIGITAL = 2
-
-        const val GENRE_ACTION = 0
-        const val GENRE_COMEDY = 1
-        const val GENRE_DRAMA = 2
-        const val GENRE_SCIFI = 3
-        const val GENRE_HORROR = 4
-    }
-}
-
-data class Movie(
-    val name: String,
-    val imageRes: Int,
-    val director: String,
-    val year: String,
-    val genre: String,
-    val format: String,
-    val imdbUrl: String,
-    val notes: String
-)
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -196,19 +160,15 @@ fun AboutScreen(navController: NavController) {
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun FilmListScreen(navController: NavController) {
+fun FilmListScreen(navController: NavController, viewModel: FilmViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
 
     val context = LocalContext.current
-
-    // Lista observable para Compose
-    val films = remember { FilmDataSource.films.toMutableStateList() }
+    val films by viewModel.films.collectAsState()
 
     val multiSelectMode = remember { mutableStateOf(false) }
-    val selectedFilms = remember { mutableStateListOf<Int>() }
-
+    val selectedFilmIds = remember { mutableStateListOf<String>() }
     val menuExpanded = remember { mutableStateOf(false) }
 
     Scaffold(
@@ -221,34 +181,18 @@ fun FilmListScreen(navController: NavController) {
                 actions = {
                     if (multiSelectMode.value) {
                         IconButton(onClick = {
-                            selectedFilms.sortedDescending().forEach { index ->
-                                if (index in films.indices) {
-                                    films.removeAt(index)
-                                }
-                            }
-                            selectedFilms.clear()
+                            selectedFilmIds.forEach { id -> viewModel.deleteFilm(id) }
+                            selectedFilmIds.clear()
                             multiSelectMode.value = false
-                            // Actualizar FilmDataSource
-                            FilmDataSource.films.clear()
-                            FilmDataSource.films.addAll(films)
                             Toast.makeText(context, "Películas borradas", Toast.LENGTH_SHORT).show()
                         }) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_delete),
-                                contentDescription = "Borrar"
-                            )
+                            Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = "Borrar")
                         }
                     }
-
-                    // Menú
                     Box {
                         IconButton(onClick = { menuExpanded.value = true }) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_more_vert),
-                                contentDescription = "Opciones"
-                            )
+                            Icon(painter = painterResource(R.drawable.ic_more_vert), contentDescription = "Opciones")
                         }
-
                         DropdownMenu(
                             expanded = menuExpanded.value,
                             onDismissRequest = { menuExpanded.value = false }
@@ -256,24 +200,18 @@ fun FilmListScreen(navController: NavController) {
                             DropdownMenuItem(
                                 text = { Text("Añadir película") },
                                 onClick = {
-                                    val newFilm = Film(
-                                        id = films.size,
+                                    viewModel.addFilm(Film(
                                         title = "Nueva Película",
                                         director = "Desconocido",
                                         year = 2025,
                                         genre = Film.GENRE_ACTION,
                                         format = Film.FORMAT_DVD,
-                                        imageResId = R.drawable.dark_knight,
-                                        imdbUrl = "",
-                                        comments = ""
-                                    )
-                                    films.add(newFilm)
-                                    FilmDataSource.films.add(newFilm)
+                                        imagen = "dark_knight"
+                                    ))
                                     menuExpanded.value = false
                                     Toast.makeText(context, "Película añadida", Toast.LENGTH_SHORT).show()
                                 }
                             )
-
                             DropdownMenuItem(
                                 text = { Text("Acerca de") },
                                 onClick = {
@@ -287,52 +225,50 @@ fun FilmListScreen(navController: NavController) {
             )
         }
     ) { padding ->
-
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(films.size) { index ->
                 val film = films[index]
+                val imageRes = try {
+                    context.resources.getIdentifier(film.imagen, "drawable", context.packageName)
+                        .takeIf { it != 0 } ?: R.drawable.dark_knight
+                } catch (e: Exception) { R.drawable.dark_knight }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            if (selectedFilms.contains(index)) colorResource(R.color.teal_200)
+                            if (selectedFilmIds.contains(film.id)) colorResource(R.color.teal_200)
                             else Color.Transparent
                         )
                         .combinedClickable(
                             onClick = {
                                 if (multiSelectMode.value) {
-                                    if (selectedFilms.contains(index)) selectedFilms.remove(index)
-                                    else selectedFilms.add(index)
+                                    if (selectedFilmIds.contains(film.id)) selectedFilmIds.remove(film.id)
+                                    else selectedFilmIds.add(film.id)
                                 } else {
                                     navController.navigate("film_data/${film.id}")
                                 }
                             },
                             onLongClick = {
                                 multiSelectMode.value = true
-                                if (!selectedFilms.contains(index)) selectedFilms.add(index)
+                                if (!selectedFilmIds.contains(film.id)) selectedFilmIds.add(film.id)
                             }
                         )
                         .padding(8.dp)
                 ) {
                     Image(
-                        painter = painterResource(film.imageResId),
+                        painter = painterResource(imageRes),
                         contentDescription = film.title,
                         modifier = Modifier.size(80.dp),
                         contentScale = ContentScale.Crop
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Column {
-                        Text(film.title ?: "")
+                        Text(film.title, fontWeight = FontWeight.Bold)
                         Text("Director: ${film.director}")
                         Text("Año: ${film.year}")
                     }
@@ -674,7 +610,7 @@ fun AppScaffold(
                         containerColor = colorResource(R.color.teal_700)
                     ),
 
-                )
+                    )
             } else {
                 TopAppBar(
                     title = { Text(stringResource(R.string.app_name)) },

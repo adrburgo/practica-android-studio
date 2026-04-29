@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "1079282315617",
+    "firebase_url": "https://filmoteca-45d3b-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "filmoteca-45d3b",
     "storage_bucket": "filmoteca-45d3b.firebasestorage.app"
   },
@@ -10,6 +11,25 @@
         "mobilesdk_app_id": "1:1079282315617:android:e1f0a9a54ee9cc4929d520",
         "android_client_info": {
           "package_name": "com.campusdigitalfp.filmoteca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC34qwKFFmUAJTIifI4ONulGMz-Heg7gYY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1079282315617:android:fb1efac81f6c4e4a29d520",
+        "android_client_info": {
+          "package_name": "qweweq.etrte.ytyh"
         }
       },
       "oauth_client": [],
