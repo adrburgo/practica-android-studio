@@ -1,5 +1,6 @@
 package com.campusdigitalfp.filmoteca
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -434,13 +435,15 @@ fun FilmDataScreen(navController: NavController, filmId: Int) {
 
 private const val TAG = "FilmEditScreen"
 
+@SuppressLint("LocalContextResourcesRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilmEditScreen(navController: NavController, filmId: Int) {
 
     val context = LocalContext.current
 
-    val generoList = listOf("Acción", "Drama", "Comedia", "Terror", "Sci-Fi")
+    val generoList2 = listOf("Acción", "Drama", "Comedia", "Terror", "Sci-Fi")
+    val generoList = context.resources.getStringArray(R.array.genero_list)
     val formatoList = listOf("DVD", "Blu-ray", "Online")
 
     val film = FilmDataSource.films.getOrNull(filmId) ?: return
@@ -518,7 +521,7 @@ fun FilmEditScreen(navController: NavController, filmId: Int) {
                 ) {
                     generoList.forEach { g ->
                         DropdownMenuItem(
-                            text = { Text(g) },
+                            text = { Text(g.toString()) },
                             onClick = {
                                 generoState.value = g
                                 expandedGenero.value = false
