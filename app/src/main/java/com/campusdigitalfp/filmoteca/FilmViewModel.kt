@@ -21,6 +21,17 @@ class FilmViewModel : ViewModel() {
         loadUserFilms()
     }
 
+    fun updateFilmImage(filmId: String, imagenUri: String) {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            viewModelScope.launch {
+                repository.updateFilmImage(userId, filmId, imagenUri)
+            }
+        } else {
+            _films.value = emptyList()
+        }
+    }
+
     // Función para cargar películas según el usuario actual
     fun loadUserFilms() {
         val userId = auth.currentUser?.uid

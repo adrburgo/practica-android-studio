@@ -69,4 +69,10 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:24.6.0")
     implementation("com.google.firebase:firebase-auth-ktx:23.2.0")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+
 }
